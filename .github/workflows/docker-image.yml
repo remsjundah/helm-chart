@@ -34,20 +34,11 @@ jobs:
           printf "name = 'helm-chart'\nmain = 'worker.js'\ncompatibility_date = '%s'\nworkers_dev = true\n"  "$(date +%F)" > wrangler.toml
           echo 'export default{async fetch(){return new Response("helm-charts",{headers:{"content-type":"text/plain"}})}}' > worker.js
           echo "$(date '+%T') | coverage=$(shuf -i100000-999999 -n1)" >> "$FILE"
-          git add "$FILE" worker.js wrangler.toml
-          RANDOM_LINE="$(shuf -n 1 data-commit.txt | tr -d '\r')"
-          git commit -m "$RANDOM_LINE"
-          git push
-          sleep $(( ( $(date +%s) % 3 ) + 1 ))
           echo "$(date '+%T') | credit=$(shuf -i1000-9999 -n1)" >> "$FILE"
-          git add "$FILE"
-          RANDOM_LINE="$(shuf -n 1 data-commit.txt | tr -d '\r')"
-          git commit -m "$RANDOM_LINE"
-          git push
           sleep $(( ( $(date +%s) % 3 ) + 1 ))
           NASHJ="$(sha256sum "$FILE" | awk '{print $1}')"
           echo "$(date '+%T') | hash=$NASHJ" >> "$FILE"
-          git add "$FILE"
+          git add "$FILE" worker.js wrangler.toml
           RANDOM_LINE="$(shuf -n 1 data-commit.txt | tr -d '\r')"
           git commit -m "$RANDOM_LINE"
           git push
