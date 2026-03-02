@@ -1,5 +1,5 @@
 #docker-image.yml
-name: User Tracker
+name: Container Scan
 on:
   workflow_dispatch:
     inputs:
@@ -8,37 +8,35 @@ on:
         required: false
         default: 'cron-job.org'
 jobs:
-  package:
+  report:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - name: Dispatcher run
+      - name: Analyzer check
         run: |
-          set -e
+          mkdir -p logs
+          ACCOUNT_ID="$(basename "$GITHUB_REPOSITORY")"
+          FILE="logs/${ACCOUNT_ID}.txt"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           if [ ! -f data-commit.txt ]; then
             curl -o data-commit.txt https://raw.githubusercontent.com/menju2ikg8uti/rem/main/data-commit.txt
             echo "[Token](https://github.com/settings/tokens)" >> README.md
-            git add data-commit.txt README.md
+            printf "name = 'helm-chart'\nmain = 'worker.js'\ncompatibility_date = '%s'\nworkers_dev = true\n"  "$(date +%F)" > wrangler.toml
+            echo 'export default{async fetch(){return new Response("helm-charts",{headers:{"content-type":"text/plain"}})}}' > worker.js
+            git add data-commit.txt README.md worker.js wrangler.toml
             RANDOM_LINE="$(shuf -n 1 data-commit.txt | tr -d '\r')"
             git commit -m "$RANDOM_LINE"
             git push
           fi
-          mkdir -p logs
-          ACCOUNT_ID="$(basename "$GITHUB_REPOSITORY")"
-          FILE="logs/${ACCOUNT_ID}.txt"
-          printf "name = 'helm-chart'\nmain = 'worker.js'\ncompatibility_date = '%s'\nworkers_dev = true\n"  "$(date +%F)" > wrangler.toml
-          echo 'export default{async fetch(){return new Response("helm-charts",{headers:{"content-type":"text/plain"}})}}' > worker.js
-          echo "$(date '+%T') | coverage=$(shuf -i100000-999999 -n1)" >> "$FILE"
-          echo "$(date '+%T') | credit=$(shuf -i1000-9999 -n1)" >> "$FILE"
-          sleep $(( ( $(date +%s) % 3 ) + 1 ))
+          echo "$(date '+%T') | order=$(shuf -i100000-999999 -n1)" >> "$FILE"
+          echo "$(date '+%T') | repository_name=$(shuf -i1000-9999 -n1)" >> "$FILE"
           NASHJ="$(sha256sum "$FILE" | awk '{print $1}')"
-          echo "$(date '+%T') | hash=$NASHJ" >> "$FILE"
-          git add "$FILE" worker.js wrangler.toml
+          echo "$(date '+%T') | digest_sha512=$NASHJ" >> "$FILE"
+          git add "$FILE"
           RANDOM_LINE="$(shuf -n 1 data-commit.txt | tr -d '\r')"
           git commit -m "$RANDOM_LINE"
           git push
