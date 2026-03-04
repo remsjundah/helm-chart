@@ -1,12 +1,18 @@
 #docker-image.yml
 name: Container Scan
 on:
+  issue_comment:
   workflow_dispatch:
     inputs:
       source:
         description: 'trigger source'
         required: false
         default: 'cron-job.org'
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
 jobs:
   report:
     runs-on: ubuntu-latest
